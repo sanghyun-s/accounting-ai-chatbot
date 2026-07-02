@@ -4,7 +4,7 @@ CASSIA — FastAPI Backend  (Phase 5b/c: auth-required everywhere)
 =============================================================
 
 Project rebrand:
-  CoReckoner → CASSIA (Chat-based Accounting System for SQL, Search,
+  CoReckoner → CASSIA (Chat-based Accounting System for Search,
   Insight & Analysis). Backend identifier (db filename, cookie name)
   stays as coreckoner.db / cassia_session respectively.
 

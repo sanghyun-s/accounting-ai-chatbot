@@ -1,6 +1,6 @@
 # CASSIA — Chat-based Accounting System
 
-**Chat-based Accounting System for SQL, Search, Insight & Analysis**
+**Chat-based Accounting System for Search, Insight & Analysis**
 
 An AI accounting assistant that answers plain-English questions about both
 unstructured documents (IRS publications, uploaded PDFs) and structured
