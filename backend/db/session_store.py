@@ -560,6 +560,33 @@ def delete_upload_record(upload_id: str) -> bool:
 # PHASE 4a — Users / Topics / Core Saves
 # =============================================================
 
+# ── CASSIA_ANON_USERROW: ensure an arbitrary (e.g. anonymous) user row exists ──
+def ensure_user_exists(user_id: str, display_name: str = "Guest") -> str:
+    """
+    Idempotently guarantee a row in `users` for the given user_id so that
+    FK-bearing writes (sessions, uploads, core_topics, core_saves) succeed.
+    Used by the no-login anonymous identity. email is left NULL to avoid the
+    UNIQUE(email) constraint. No-op if the row already exists.
+    """
+    if not user_id:
+        raise ValueError("user_id is required")
+    conn = _get_conn()
+    try:
+        row = conn.execute(
+            "SELECT user_id FROM users WHERE user_id=?", (user_id,)
+        ).fetchone()
+        if row is None:
+            conn.execute(
+                """INSERT INTO users (user_id, email, display_name, created_at, is_default)
+                   VALUES (?, ?, ?, ?, 0)""",
+                (user_id, None, display_name, _now())
+            )
+            conn.commit()
+        return user_id
+    finally:
+        conn.close()
+
+
 def ensure_default_user() -> str:
     """
     Create the 'default' tombstone user if it doesn't exist.

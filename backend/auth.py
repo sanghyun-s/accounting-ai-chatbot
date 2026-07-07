@@ -177,6 +177,14 @@ ANON_PREFIX = "anon_"
 def _anon_user_from_token(token: str) -> "User":
     """Build a stable anonymous User from a browser cookie token."""
     uid = token if token.startswith(ANON_PREFIX) else ANON_PREFIX + token
+    # CASSIA_ANON_USERROW: guarantee a users row so FK-bearing writes succeed.
+    try:
+        from db.session_store import ensure_user_exists
+        ensure_user_exists(uid, display_name="Guest")
+    except Exception:
+        # Non-fatal: if this ever fails, reads still work; writes will
+        # surface their own error. Never block identity resolution.
+        pass
     return User(user_id=uid, email="", username="guest", is_admin=False)
 
 def mint_anon_token() -> str:
