@@ -4,8 +4,11 @@
 
 An AI accounting assistant that answers plain-English questions about both
 unstructured documents (IRS publications, uploaded PDFs) and structured
-financial data (QuickBooks-style exports), with persistent multi-session
-chat, per-session file uploads, and semantic recall of saved answers.
+financial data (QuickBooks-style exports), with multi-chat workspace
+organization, per-session file uploads, save-to-Core, and semantic recall
+of saved answers. In the public no-login demo, saved work is available while
+the workspace storage is retained; it is not production-grade permanent
+storage — export (MD / HTML / CSV) is the durable record.
 It runs with **no login** — each browser gets a private, anonymous
 workspace (no account, no email). The multi-user account system
 (bcrypt sign-in, per-user isolation) is retained in the codebase but
@@ -50,6 +53,23 @@ after two rounds of stabilization patches. **Deployed** (Render, no-login) 2026-
 
 ---
 
+<!-- CASSIA_PERSIST_COPY -->
+### Deployment note — no-login demo persistence
+The public CASSIA deployment runs as a no-login portfolio demo. Each browser
+receives an anonymous workspace identity, and saved sessions, uploads, and Core
+items are available across chats **while the workspace storage is retained**.
+
+Because the current public deployment uses free-tier demo infrastructure rather
+than production-grade persistent storage, anonymous workspace data **should not
+be treated as permanent**. Hosting restarts, redeploys, or idle spin-down /
+cold-start behavior may reset locally stored demo data.
+
+For permanent retention, CASSIA supports **export** to Markdown, print-friendly
+HTML, and CSV — in this deployment, export is the durable record. Core recall
+demonstrates the workflow pattern of saving and semantically retrieving findings;
+production-grade long-term memory would require a persistent disk or an external
+database.
+
 ## What it does
 
 Ask plain-English questions and get answers grounded in real data.
@@ -66,11 +86,11 @@ Ask plain-English questions and get answers grounded in real data.
 **Document upload + grounded Q&A** (per-session, per-user ChromaDB):
 > Upload Apple's 10-K PDF, then ask *"What was Apple's total net sales in FY 2024?"* → answer cites the uploaded document and page number; only the uploading user sees the chunks
 
-**Save important answers to your permanent core**:
-> Click 💾 on any answer or upload → it becomes permanently recallable across all future sessions
+**Save important answers to your Core**:
+> Click 💾 on any answer or upload → it becomes recallable by meaning in later chats while the workspace storage is retained (export to keep it permanently)
 
 **Recall by natural language** (semantic search over saves):
-> *"What did I save about net income?"* → returns your saved Q1 analysis with relevance scores, even months later in a different session
+> *"What did I save about net income?"* → returns your saved Q1 analysis with relevance scores in a later chat, while the workspace storage is retained
 
 **Export and follow-up** (Markdown / print-HTML / CSV):
 > Export a whole session, a single answer, or a Core save as Markdown or print-friendly HTML (Cmd-P → PDF); download any result table as CSV. Citations and generated SQL are preserved. Optional **SSN/EIN masking** hides sensitive identifiers in both the on-screen view and exports.
@@ -202,7 +222,8 @@ python3 backend/main.py
 
 Open `http://localhost:8002` — CASSIA opens straight to the chat workspace.
 There is no login: each browser is given a private anonymous identity, and
-your sessions, saves, and Core persist for that browser.
+your sessions, saves, and Core are scoped to that browser. (Durability
+depends on the deployment storage — see the persistence note under Status.)
 
 The startup banner shows green checkmarks for each subsystem. If any
 appear as warnings (⚠), the message tells you what's missing.
@@ -244,7 +265,7 @@ Each retrieval returns top-k chunks per collection, merges by similarity score, 
 
 ### Core saves and natural-language recall
 
-Every assistant answer and every uploaded file can be saved to a permanent "core" via the 💾 button. Saves can be organized into user-defined topics that are shared with sessions (sessions and saves share the same topic namespace).
+Every assistant answer and every uploaded file can be saved to your Core via the 💾 button. Saves can be organized into user-defined topics that are shared with sessions (sessions and saves share the same topic namespace).
 
 At save time, each item is embedded using `text-embedding-3-small` and the vector is cached. When the user later asks something like *"What did I save about Q1?"*, the recall pipeline:
 1. Embeds the question
@@ -253,7 +274,7 @@ At save time, each item is embedded using `text-embedding-3-small` and the vecto
 4. Has the LLM compose a grounded answer citing the saved titles and dates
 5. If nothing matches, falls through to the normal RAG/SQL router with a visible "no recall match" banner
 
-This is the project's flagship feature — your reasoning and analysis persist across sessions and become a private knowledge base.
+This is the project's flagship workflow pattern: saved accounting findings can be semantically retrieved in a later chat instead of disappearing inside a transcript. In the public no-login demo, durability depends on the deployment storage; export is the durable retention path.
 
 ### Multi-session chat with auto-titles
 
