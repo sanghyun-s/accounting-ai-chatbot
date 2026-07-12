@@ -6,9 +6,10 @@ An AI accounting assistant that answers plain-English questions about both
 unstructured documents (IRS publications, uploaded PDFs) and structured
 financial data (QuickBooks-style exports), with multi-chat workspace
 organization, per-session file uploads, save-to-Core, and semantic recall
-of saved answers. In the public no-login demo, saved work is available while
-the workspace storage is retained; it is not production-grade permanent
-storage — export (MD / HTML / CSV) is the durable record.
+of saved answers. In the public no-login demo, your sessions and saved work
+are held on the demo server while you work — not on your device, and not
+tied to an account. They are not guaranteed to persist across app updates, so
+export (MD / HTML / CSV) is the durable record.
 It runs with **no login** — each browser gets a private, anonymous
 workspace (no account, no email). The multi-user account system
 (bcrypt sign-in, per-user isolation) is retained in the codebase but
@@ -55,20 +56,23 @@ after two rounds of stabilization patches. **Deployed** (Render, no-login) 2026-
 
 <!-- CASSIA_PERSIST_COPY -->
 ### Deployment note — no-login demo persistence
-The public CASSIA deployment runs as a no-login portfolio demo. Each browser
-receives an anonymous workspace identity, and saved sessions, uploads, and Core
-items are available across chats **while the workspace storage is retained**.
+<!-- CASSIA_TRANSIENT_COPY -->
+CASSIA runs as a no-login portfolio demo. Each browser is given an anonymous
+workspace identity (a cookie); the actual sessions, uploads, and Core saves are
+written **on the demo server** during your workspace flow — **not on your
+device and not in your browser**, and not tied to any account.
 
-Because the current public deployment uses free-tier demo infrastructure rather
-than production-grade persistent storage, anonymous workspace data **should not
-be treated as permanent**. Hosting restarts, redeploys, or idle spin-down /
-cold-start behavior may reset locally stored demo data.
+This saved work is **transient**: because the demo does not use production-grade
+persistent storage, an app update / redeploy (or any container replacement) can
+reset it. <!-- PLAN-DEPENDENT: on the free tier, idle spin-down/cold-start can
+also reset it; the Starter plan keeps the service warm so idle no longer does. -->
+It **should not be treated as permanent storage**.
 
 For permanent retention, CASSIA supports **export** to Markdown, print-friendly
 HTML, and CSV — in this deployment, export is the durable record. Core recall
 demonstrates the workflow pattern of saving and semantically retrieving findings;
-production-grade long-term memory would require a persistent disk or an external
-database.
+production-grade long-term memory would require persistent disk storage or an
+external database (a deliberate non-goal for this no-login demo).
 
 ## What it does
 
@@ -222,8 +226,9 @@ python3 backend/main.py
 
 Open `http://localhost:8002` — CASSIA opens straight to the chat workspace.
 There is no login: each browser is given a private anonymous identity, and
-your sessions, saves, and Core are scoped to that browser. (Durability
-depends on the deployment storage — see the persistence note under Status.)
+your sessions, saves, and Core are held on the demo server for that anonymous
+workspace — not on your device. Durability is limited (see the persistence
+note under Status); export anything you want to keep.
 
 The startup banner shows green checkmarks for each subsystem. If any
 appear as warnings (⚠), the message tells you what's missing.
@@ -531,8 +536,9 @@ product.
 
 ### Use guidance
 
-Until the items above exist, **do not upload real SSNs, payroll records, or
-other confidential client documents** unless the deployment environment is
+Because uploaded files are processed **on the demo server** (not only in your
+browser) and this demo does not encrypt data at rest, **do not upload real SSNs,
+payroll records, or other confidential client documents** unless the deployment environment is
 independently secured (encrypted storage, controlled access, and an appropriate
 data-processing agreement).
 
